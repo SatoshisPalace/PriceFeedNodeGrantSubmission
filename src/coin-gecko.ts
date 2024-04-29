@@ -5,6 +5,7 @@ export async function getPriceFromCoinGecko(coinId: string): Promise<number> {
     const url = getCoinGeckoPriceURL(coinId);
     const response = await fetch(url);
     const data = await response.json();
+    console.log(url)
     return data[coinId].usd as number;
 }
 
