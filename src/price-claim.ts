@@ -1,56 +1,27 @@
-import { HTTPProviderParamsV2 } from "@reclaimprotocol/witness-sdk/lib/providers/http-provider";
-import { getCoinGeckoPriceURL, getPriceFromCoinGecko } from "./coin-gecko";
-import { createClaim, getBeacon } from "@reclaimprotocol/witness-sdk";
 import { ReclaimHTTPProvider, ResponseMatches } from "satoshis-palace-reclaim-base";
-
-export async function getPriceClaimParams(coinId: string): Promise<HTTPProviderParamsV2> {
-    const claim: HTTPProviderParamsV2 = {
-        url: getCoinGeckoPriceURL(coinId),
-        method: "GET",
-        responseRedactions: [],
-        responseMatches: [
-            {
-                type: "contains",
-                // replace with response body
-                value: String(await getPriceFromCoinGecko(coinId))
-            }
-        ]
-    }
-    return claim
-}
-
-export async function createReclaimPriceClaim(coinId: string) {
-    const params = await getPriceClaimParams(coinId)
-    const claim = await createClaim({
-        name: 'http',
-        params,
-        secretParams: {
-            cookieStr: 'abcd=xyz'
-        },
-        ownerPrivateKey: process.env.PRIVATE_KEY!,
-        // beacon: getBeacon({
-        //     type: BeaconType.BEACON_TYPE_SMART_CONTRACT,
-        //     id: "0xpulsar-3"
-        // })
-    })
-    return claim
-}
+import { HistoricalChartDataHandler } from "./api/coin-gecko/HistoricalDataHandler";
 
 export class PriceReclaimHTTPProvider extends ReclaimHTTPProvider {
     method: 'GET' | 'POST' = 'GET';
     private coinId: string;
+    private apiHandler: HistoricalChartDataHandler;
 
     constructor(coinId: string) {
         super();
         this.coinId = coinId;
+        this.apiHandler = new HistoricalChartDataHandler(coinId)
     }
 
     protected getUrl(): string {
-        return getCoinGeckoPriceURL(this.coinId);
+        return this.apiHandler.getUrl();
     }
 
     protected getOwnerPrivateKey(): string {
         return process.env.PRIVATE_KEY!;
+    }
+
+    private getValueThatResponseIsExpectedToContain(): string {
+        this.apiHandler.fetchData()
     }
 
     protected async getResponseMatches(): Promise<ResponseMatches[]> {
@@ -58,7 +29,7 @@ export class PriceReclaimHTTPProvider extends ReclaimHTTPProvider {
             {
                 type: "contains",
                 // replace with response body
-                value: String(await getPriceFromCoinGecko(this.coinId))
+                value: String(this.apiHandler.fetchData())
             }
         ]
         return responseMatches

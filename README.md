@@ -12,11 +12,14 @@ npm install
 ```
 
 ### Environment Setup
-
+Private Key:
 ```bash
 cp .env.example .env
 ```
-**Note: Dont forget to add your private key!**
+
+[**Set Your Private Key (Testing only link not secure)**](https://vanity-eth.tk/)
+
+[**Set Coin Gecko API key**](https://www.coingecko.com/en/developers/dashboard?redirect=%2Freference%2Fcoins-id-market-chart)
 
 ### Run
 ```
