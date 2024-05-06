@@ -26,7 +26,8 @@
     "typescript": "5.4.5"
   },
   "dependencies": {
-    "satoshis-palace-reclaim-base": "git+ssh://git@github.com:SatoshisPalace/reclaim.git",
-    "dotenv": "16.4.5"
+    "@reclaimprotocol/witness-sdk": "git+ssh://git@gitlab.reclaimprotocol.org/reclaim-clients/witness-sdk.git#218e10b86acad086f27af571b6c08d60ce626e9e",
+    "dotenv": "16.4.5",
+    "satoshis-palace-reclaim-base": "git+ssh://git@github.com:SatoshisPalace/reclaim.git"
   }
 }

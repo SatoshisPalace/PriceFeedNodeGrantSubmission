@@ -1,5 +1,3 @@
-import { BaseAPIHandler } from "../BaseAPIHandler";
-import { CRYPTO_COMPARE_BASE_URL, CRYPTO_COMPARE_API_KEY } from "./constants";
 import { CryptoCompateAPIHandler } from "./CryptoCompareAPIHandler";
 
 export class CryptoCompareHistoricalDataHandler extends CryptoCompateAPIHandler {
