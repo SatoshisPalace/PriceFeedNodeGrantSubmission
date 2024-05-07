@@ -25,3 +25,12 @@ cp .env.example .env
 ```
 npm start
 ```
+
+### Docker build
+
+```
+npm install
+docker login
+docker build -t satoshispalace/price-oracle:latest .
+docker push satoshispalace/price-oracle:latest
+```
