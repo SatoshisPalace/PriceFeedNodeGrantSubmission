@@ -1,11 +1,12 @@
-import { CryptoCompateAPIHandler } from "./CryptoCompareAPIHandler";
+import { CoinMarketCapAPIHandler } from "./CoinMarketCapAPIHandler";
 
-export class CryptoCompareHistoricalDataHandler extends CryptoCompateAPIHandler {
+export class HistoricalDataHandler extends CoinMarketCapAPIHandler {
     constructor(coinId: string, currency: string) {
         super();
-        this.setEndpoint('/data/v2/histominute')
+        this.setEndpoint('v3/cryptocurrency/quotes/historical')
             .setCoinId(coinId)
             .setTargetCurrency(currency)
+            .setInterval("5m")
     }
 
     public async getHistoricalMinuteData(limit: string, endTime: string): Promise<any> {

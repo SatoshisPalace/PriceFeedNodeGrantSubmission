@@ -4,20 +4,23 @@ import { HeaderMap, HTTPProviderParamsV2 } from "@reclaimprotocol/witness-sdk/li
 import { CryptoCompareHistoricalDataHandler } from "./api/crypto-compare/CryptoCompareHistoricalDataHandler";
 import { ProviderClaimData } from "@reclaimprotocol/witness-sdk/lib/proto/api";
 import { CRYPTO_COMPARE_API_KEY } from "./api/crypto-compare/constants";
+import { HistoricalDataHandler } from "./api/coinmarketcap/HistoricalDataHandler";
 
 export class PriceReclaim extends ReclaimHTTPProvider {
     method: 'GET' | 'POST' = 'GET';
     private private_key: string;
-    private apiHandler: CryptoCompareHistoricalDataHandler;
+    private apiHandler: HistoricalDataHandler;
     private timeStamp!: string;
+    private coinId: string;
 
     constructor(private_key: string, coinId: string, currency: string) {
         super();
         this.private_key = private_key
+        this.coinId = coinId
         console.log(coinId)
         console.log(currency)
 
-        this.apiHandler = new CryptoCompareHistoricalDataHandler(coinId, currency)
+        this.apiHandler = new HistoricalDataHandler(coinId, currency)
         console.log(this.getUrl())
     }
 
@@ -59,7 +62,7 @@ export class PriceReclaim extends ReclaimHTTPProvider {
     protected getResponseRedactions(): ResponseRedactions[] {
         const responseRedactions: ResponseRedactions[] = [
             {
-                jsonPath: "Data.Data"
+                jsonPath: `data.${this.coinId}`
             }
         ]
 
@@ -69,13 +72,19 @@ export class PriceReclaim extends ReclaimHTTPProvider {
     protected getSercretParams(): ProviderSecretParams<typeof this.name> {
 
         const secretParams: ProviderSecretParams<typeof this.name> = {
-            authorisationHeader: `Apikey ${CRYPTO_COMPARE_API_KEY}`
+            // authorisationHeader: this.apiHandler.getAuthHeader()
+            headers: this.getHeaders()
         }
         return secretParams
     }
 
     private async getValueThatResponseIsExpectedToContain(): Promise<string> {
-        return JSON.stringify((await this.apiHandler.getHistoricalMinuteData("1", this.timeStamp)).Data.Data);
+        // Get a single price point
+        const minuteData = await this.apiHandler.getHistoricalMinuteData("2", this.timeStamp)
+        console.log(minuteData)
+        const json = JSON.stringify(minuteData.data[this.coinId])
+        console.log(json)
+        return json;
     }
 
     protected async getResponseMatches(): Promise<ResponseMatches[]> {

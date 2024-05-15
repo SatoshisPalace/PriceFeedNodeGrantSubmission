@@ -9,7 +9,7 @@ export class CryptoCompateAPIHandler extends BaseAPIHandler {
             .setHeader('authorization', `Apikey ${CRYPTO_COMPARE_API_KEY}`)
     }
 
-    public setCurrency(currency: string): this {
+    public setTargetCurrency(currency: string): this {
         this.setQueryParam('tsym', currency);
         return this;
     }

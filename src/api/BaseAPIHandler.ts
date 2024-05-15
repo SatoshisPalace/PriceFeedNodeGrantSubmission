@@ -32,6 +32,10 @@ export class BaseAPIHandler {
         return this.headers
     }
 
+    public getAuthHeader(): string {
+        throw Error("Auth Header Undefined")
+    }
+
     public setEndpoint(endpoint: string): this {
         this.endpoint = endpoint;
         return this;

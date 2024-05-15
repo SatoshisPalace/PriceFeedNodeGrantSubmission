@@ -9,7 +9,9 @@ async function main() {
     async function attemptClaim() {
         try {
             let reclaimProvider = new PriceReclaim(PRIVATE_KEY!, COIN_ID, DENOMINATED_COIN_ID);
-            const claim = await reclaimProvider.createPriceClaim("1714609347");
+            // const claim = await reclaimProvider.createPriceClaim("1714609347");
+            const claim = await reclaimProvider.createPriceClaim("2024-05-15T22:17:07+00:00");
+
             console.log('Price claim created successfully.', claim);
             attempts = 0; // reset attempts after a successful claim
         } catch (error) {
