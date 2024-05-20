@@ -16,6 +16,7 @@ export class HistoricalDataHandler extends CoinMarketCapAPIHandler {
         try {
             const data = await this.fetchData();
             console.log('Historical minute data retrieved successfully.');
+            console.log(JSON.stringify(data))
             return data;
         } catch (error) {
             console.error('Failed to retrieve historical minute data:', error);

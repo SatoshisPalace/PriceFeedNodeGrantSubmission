@@ -1,33 +1,25 @@
-import { PriceReclaim } from './price-claim';
-import { COIN_ID, DENOMINATED_COIN_ID, MAX_RETRIES, PRIVATE_KEY, REFRESH_INTERVAL, TIME_OUT } from './constants';
+import { getPriceClaim, getTimesToPost, postPrice } from './integrations';
+import { convertUnixToISO, calculateNextRunDelay } from './time';
 
-// Load environment variables
 
-async function main() {
-    let attempts = 0;
 
-    async function attemptClaim() {
-        try {
-            let reclaimProvider = new PriceReclaim(PRIVATE_KEY!, COIN_ID, DENOMINATED_COIN_ID);
-            // const claim = await reclaimProvider.createPriceClaim("1714609347");
-            const claim = await reclaimProvider.createPriceClaim("2024-05-15T22:17:07+00:00");
+// Main function to initialize and continuously update contests and claims
+async function main(): Promise<void> {
 
-            console.log('Price claim created successfully.', claim);
-            attempts = 0; // reset attempts after a successful claim
-        } catch (error) {
-            console.error(`Failed to create price claim on attempt ${attempts + 1}:`, error);
-            if (++attempts < MAX_RETRIES) {
-                setTimeout(attemptClaim, TIME_OUT); // Retry after a fraction of the interval
-            } else {
-                console.error('Max retries reached, will try again in next cycle.');
-                attempts = 0; // reset attempts for the next cycle
-            }
+    console.log()
+    try {
+        const timesToPost = await getTimesToPost();
+        for (let unixTime of timesToPost) {
+            const timestamp = convertUnixToISO(unixTime)
+            const claim = await getPriceClaim(timestamp);
+            await postPrice(claim);
         }
+    } catch (error) {
+        console.error('Failed to fetch active contests:', error);
     }
-
-    setInterval(attemptClaim, REFRESH_INTERVAL); // Schedule the claim to run at the interval
-    attemptClaim(); // Also run immediately on start
+    // Schedule the next run
+    setTimeout(main, calculateNextRunDelay());
 }
 
-// Execute the main function
-main();
+// Initial call to start the process
+main()

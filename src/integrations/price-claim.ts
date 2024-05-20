@@ -1,12 +1,11 @@
 import { ReclaimHTTPProvider, ResponseMatches, ResponseRedactions } from "satoshis-palace-reclaim-base";
 import { ProviderSecretParams, WitnessData } from "@reclaimprotocol/witness-sdk";
 import { HeaderMap, HTTPProviderParamsV2 } from "@reclaimprotocol/witness-sdk/lib/providers/http-provider";
-import { CryptoCompareHistoricalDataHandler } from "./api/crypto-compare/CryptoCompareHistoricalDataHandler";
 import { ProviderClaimData } from "@reclaimprotocol/witness-sdk/lib/proto/api";
-import { CRYPTO_COMPARE_API_KEY } from "./api/crypto-compare/constants";
-import { HistoricalDataHandler } from "./api/coinmarketcap/HistoricalDataHandler";
+import { HistoricalDataHandler } from "../api/coinmarketcap/HistoricalDataHandler";
+import { MAX_RETRIES, TIME_OUT } from "../constants";
 
-export class PriceReclaim extends ReclaimHTTPProvider {
+class PriceReclaim extends ReclaimHTTPProvider {
     method: 'GET' | 'POST' = 'GET';
     private private_key: string;
     private apiHandler: HistoricalDataHandler;
@@ -81,9 +80,7 @@ export class PriceReclaim extends ReclaimHTTPProvider {
     private async getValueThatResponseIsExpectedToContain(): Promise<string> {
         // Get a single price point
         const minuteData = await this.apiHandler.getHistoricalMinuteData("2", this.timeStamp)
-        console.log(minuteData)
         const json = JSON.stringify(minuteData.data[this.coinId])
-        console.log(json)
         return json;
     }
 
@@ -107,4 +104,32 @@ export class PriceReclaim extends ReclaimHTTPProvider {
         this.timeStamp = time
         return this.createClaim()
     }
+}
+
+export async function getPriceClaim(timeStamp: string): Promise<{
+    identifier: string;
+    claimData: ProviderClaimData;
+    signatures: string[];
+    witnesses: WitnessData[];
+}> {
+    let attempts = 0;
+    let reclaimProvider = new PriceReclaim(process.env.PRIVATE_KEY!, process.env.COIN_ID!, process.env.DENOMINATED_COIN_ID!);
+
+    while (attempts < MAX_RETRIES) {
+        try {
+            const claim = await reclaimProvider.createPriceClaim(timeStamp);
+            console.log('Price claim created successfully:', claim);
+            return claim; // Successfully created claim, return it
+        } catch (error) {
+            console.error(`Failed to create price claim on attempt ${attempts + 1}:`, error);
+            attempts++;
+            if (attempts >= MAX_RETRIES) {
+                throw new Error(`Max retries reached for timestamp ${timeStamp}. Unable to create price claim.`);
+            }
+            await new Promise(resolve => setTimeout(resolve, TIME_OUT)); // Delay before retrying
+        }
+    }
+    // This line is technically unreachable due to the throw in the catch block above,
+    // but it's here to satisfy TypeScript's need for a return on all code paths or an error thrown.
+    throw new Error("Unexpected error in getPriceClaim function.");
 }
