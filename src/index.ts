@@ -1,12 +1,15 @@
-import { getPriceClaim, getTimesToPost, postPrice } from './integrations';
+// @ts-ignore
+import 'spjs/dist/polyfills'
+
+import { getTimesToPost, postPrice, getPriceClaim } from './integrations';
 import { convertUnixToISO, calculateNextRunDelay } from './time';
+import { logger } from 'satoshis-palace-reclaim-base'
 
 
 
 // Main function to initialize and continuously update contests and claims
 async function main(): Promise<void> {
 
-    console.log()
     try {
         const timesToPost = await getTimesToPost();
         for (let unixTime of timesToPost) {
@@ -15,7 +18,7 @@ async function main(): Promise<void> {
             await postPrice(claim);
         }
     } catch (error) {
-        console.error('Failed to fetch active contests:', error);
+        logger.error('FATAL! Failed to post find prove and post prices', error)
     }
     // Schedule the next run
     setTimeout(main, calculateNextRunDelay());

@@ -1,9 +1,12 @@
-import { ReclaimHTTPProvider, ResponseMatches, ResponseRedactions } from "satoshis-palace-reclaim-base";
-import { ProviderSecretParams, WitnessData } from "@reclaimprotocol/witness-sdk";
+import { Claim, ReclaimHTTPProvider, ResponseMatches, ResponseRedactions } from "satoshis-palace-reclaim-base";
+import { ProviderSecretParams } from "@reclaimprotocol/witness-sdk";
 import { HeaderMap, HTTPProviderParamsV2 } from "@reclaimprotocol/witness-sdk/lib/providers/http-provider";
-import { ProviderClaimData } from "@reclaimprotocol/witness-sdk/lib/proto/api";
 import { HistoricalDataHandler } from "../api/coinmarketcap/HistoricalDataHandler";
 import { MAX_RETRIES, TIME_OUT } from "../constants";
+import { logger } from 'satoshis-palace-reclaim-base'
+// SP.js / SHADE.js / SECRET.js all fight for window polyfills and it breaks reclaims fetch usage setting window to undefined resets all that
+// @ts-ignore
+window = undefined
 
 class PriceReclaim extends ReclaimHTTPProvider {
     method: 'GET' | 'POST' = 'GET';
@@ -16,11 +19,8 @@ class PriceReclaim extends ReclaimHTTPProvider {
         super();
         this.private_key = private_key
         this.coinId = coinId
-        console.log(coinId)
-        console.log(currency)
 
         this.apiHandler = new HistoricalDataHandler(coinId, currency)
-        console.log(this.getUrl())
     }
 
     protected getUrl(): string {
@@ -95,33 +95,27 @@ class PriceReclaim extends ReclaimHTTPProvider {
         return responseMatches
     }
 
-    public createPriceClaim(time: string): Promise<{
-        identifier: string;
-        claimData: ProviderClaimData;
-        signatures: string[];
-        witnesses: WitnessData[];
-    }> {
+    public createPriceClaim(time: string): Promise<Claim> {
         this.timeStamp = time
         return this.createClaim()
     }
 }
 
-export async function getPriceClaim(timeStamp: string): Promise<{
-    identifier: string;
-    claimData: ProviderClaimData;
-    signatures: string[];
-    witnesses: WitnessData[];
-}> {
+export async function getPriceClaim(timeStamp: string): Promise<Claim> {
     let attempts = 0;
     let reclaimProvider = new PriceReclaim(process.env.PRIVATE_KEY!, process.env.COIN_ID!, process.env.DENOMINATED_COIN_ID!);
 
     while (attempts < MAX_RETRIES) {
         try {
             const claim = await reclaimProvider.createPriceClaim(timeStamp);
-            console.log('Price claim created successfully:', claim);
+            logger.info('-'.repeat(75))
+            logger.info(`Price claim created successfully\n
+                        timestamp of price:${timeStamp}\n
+                        identifier:${claim.identifier}`)
+            logger.info('-'.repeat(75))
             return claim; // Successfully created claim, return it
         } catch (error) {
-            console.error(`Failed to create price claim on attempt ${attempts + 1}:`, error);
+            logger.error(`Failed to create price claim on attempt ${attempts + 1}:`, error)
             attempts++;
             if (attempts >= MAX_RETRIES) {
                 throw new Error(`Max retries reached for timestamp ${timeStamp}. Unable to create price claim.`);

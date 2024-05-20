@@ -1,5 +1,5 @@
 import { CoinMarketCapAPIHandler } from "./CoinMarketCapAPIHandler";
-
+import { logger } from 'satoshis-palace-reclaim-base'
 export class HistoricalDataHandler extends CoinMarketCapAPIHandler {
     constructor(coinId: string, currency: string) {
         super();
@@ -15,11 +15,12 @@ export class HistoricalDataHandler extends CoinMarketCapAPIHandler {
 
         try {
             const data = await this.fetchData();
-            console.log('Historical minute data retrieved successfully.');
-            console.log(JSON.stringify(data))
+            logger.info('-'.repeat(75))
+            logger.info('Successfully retrieved historical minute data from CoinMarketCap.')
+            logger.info('-'.repeat(75))
             return data;
         } catch (error) {
-            console.error('Failed to retrieve historical minute data:', error);
+            logger.error('Failed to retrieve historical minute data from CoinMarketCap:', error)
             throw error;
         }
     }

@@ -11,11 +11,9 @@ export async function getTimesToPost(): Promise<number[]> {
     const bullVsBear = new BullVsBear(bullVsBearInfo, snip20Info, secretJs);
 
     await bullVsBear.betContest("BTC", 1, "100") // TODO remove
-    console.log(await bullVsBear.getActiveContests())// TODO remove
     while (attempts < MAX_RETRIES) {
         try {
             let response = await bullVsBear.getTimesToResolve();
-            console.log(response)// TODO remove
             let prices: number[] = response.times_to_resolve.times
             return prices
         } catch (error) {
