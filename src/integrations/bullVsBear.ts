@@ -10,7 +10,7 @@ export async function getTimesToPost(): Promise<number[]> {
     let secretJs = getSecretNetworkClient();
     const bullVsBear = new BullVsBear(bullVsBearInfo, snip20Info, secretJs);
 
-    await bullVsBear.betContest("BTC", 1, "100") // TODO remove
+    // await bullVsBear.betContest("BTC", 1, "100") // For testing, always places a bet
     while (attempts < MAX_RETRIES) {
         try {
             let response = await bullVsBear.getTimesToResolve();
