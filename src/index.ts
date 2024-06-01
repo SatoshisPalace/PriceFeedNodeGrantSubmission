@@ -15,10 +15,15 @@ async function main(): Promise<void> {
 
     try {
         const timesToPost = await getTimesToPost();
+        logger.info(`Times to Post: ${timesToPost}`);
         for (let unixTime of timesToPost) {
+            logger.info('-'.repeat(75));
             const timestamp = convertUnixToISO(unixTime)
+            logger.info(`Posting price for: ${timestamp}`);
             const claim = await getPriceClaim(timestamp);
             await postPrice(claim);
+            logger.info('-'.repeat(75));
+
         }
     } catch (error) {
         logger.error('FATAL! Failed to post find prove and post prices', error)

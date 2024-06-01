@@ -21,9 +21,7 @@ export async function postPrice(claim: Claim) {
             `
         );
     }
-    logger.info('-'.repeat(75))
     logger.info('Price Posted Successfully for claim with id:', claim.identifier)
-    logger.info('-'.repeat(75))
 }
 
 function convertClaimToProof(claim: {

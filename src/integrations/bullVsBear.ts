@@ -3,6 +3,7 @@ import { contractInfo as bullVsBearInfo } from 'spjs/dist/deployment/artifacts/b
 import { contractInfo as snip20Info } from 'spjs/dist/deployment/artifacts/snip20-info'
 import { BullVsBear } from 'spjs/dist/modules/bullvsbear';
 import { MAX_RETRIES, TIME_OUT } from '../constants';
+import { logger } from 'satoshis-palace-reclaim-base'
 
 export async function getTimesToPost(): Promise<number[]> {
 
@@ -14,11 +15,12 @@ export async function getTimesToPost(): Promise<number[]> {
     while (attempts < MAX_RETRIES) {
         try {
             let response = await bullVsBear.getTimesToResolve();
+            logger.info(response)
             let prices: number[] = response.times_to_resolve.times
             return prices
         } catch (error) {
             attempts++;
-            console.error(`Attempt ${attempts} failed: ${error}`);
+            logger.error(`Attempt ${attempts} failed: ${error}`);
             if (attempts >= MAX_RETRIES) {
                 throw new Error("Failed to fetch needed prices after maximum retries.");
             }

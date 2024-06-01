@@ -108,11 +108,9 @@ export async function getPriceClaim(timeStamp: string): Promise<Claim> {
     while (attempts < MAX_RETRIES) {
         try {
             const claim = await reclaimProvider.createPriceClaim(timeStamp);
-            logger.info('-'.repeat(75))
             logger.info(`Price claim created successfully\n
                         timestamp of price:${timeStamp}\n
                         identifier:${claim.identifier}`)
-            logger.info('-'.repeat(75))
             return claim; // Successfully created claim, return it
         } catch (error) {
             logger.error(`Failed to create price claim on attempt ${attempts + 1}:`, error)
