@@ -58,16 +58,6 @@ class PriceReclaim extends ReclaimHTTPProvider {
         return params;
     }
 
-    protected getResponseRedactions(): ResponseRedactions[] {
-        const responseRedactions: ResponseRedactions[] = [
-            {
-                jsonPath: `data.${this.coinId}`
-            }
-        ]
-
-        return responseRedactions
-    }
-
     protected getSercretParams(): ProviderSecretParams<typeof this.name> {
 
         const secretParams: ProviderSecretParams<typeof this.name> = {
@@ -79,9 +69,8 @@ class PriceReclaim extends ReclaimHTTPProvider {
 
     private async getValueThatResponseIsExpectedToContain(): Promise<string> {
         // Get a single price point
-        const minuteData = await this.apiHandler.getHistoricalMinuteData("2", this.timeStamp)
-        const json = JSON.stringify(minuteData.data[this.coinId])
-        return json;
+        const minuteData = await this.apiHandler.getHistoricalMinuteData("1", this.timeStamp)
+        return `price\":${minuteData.data[this.coinId].quotes[0].quote.USD.price}`;
     }
 
     protected async getResponseMatches(): Promise<ResponseMatches[]> {
