@@ -24,3 +24,22 @@ export function calculateNextRunDelay(): number {
 
     return secondsUntilNextInterval * MILLISECONDS_PER_SECOND;
 }
+
+/**
+ * Calculates 5-minute intervals between the start time and now.
+ * @param startTime The Unix timestamp in seconds from which to start calculating.
+ * @returns An array of Unix timestamps in seconds.
+ */
+export function calculateIntervals(startTime: number): number[] {
+    const intervals = [];
+    const now = Math.floor(Date.now() / 1000); // Current time in seconds
+
+    // Calculate the next 5-minute interval after startTime
+    let nextTime = startTime - (startTime % (INTERVAL_MINUTES * SECONDS_PER_MINUTE)) + (INTERVAL_MINUTES * SECONDS_PER_MINUTE);
+
+    for (let time = nextTime; time <= now; time += (INTERVAL_MINUTES * SECONDS_PER_MINUTE)) {
+        intervals.push(time);
+    }
+
+    return intervals;
+}

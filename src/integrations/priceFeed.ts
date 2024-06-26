@@ -5,6 +5,7 @@ import { contractInfo as priceFeedInfo } from 'spjs/dist/deployment/artifacts/pr
 import { ProviderClaimData } from "@reclaimprotocol/witness-sdk/lib/proto/api";
 import { WitnessData } from "@reclaimprotocol/witness-sdk";
 import { Claim, logger } from 'satoshis-palace-reclaim-base'
+import { calculateIntervals } from "../time";
 
 
 export async function postPrice(claim: Claim) {
@@ -23,6 +24,18 @@ export async function postPrice(claim: Claim) {
     }
     logger.info('Price Posted Successfully for claim with id:', claim.identifier)
 }
+
+export async function getTimesToPost() {
+    const secretJs = getSecretNetworkClient();
+    const priceFeed = new PriceFeed(priceFeedInfo, secretJs);
+    const mostRecentPrice = await priceFeed.get_most_recent_price();
+    const lastTime = mostRecentPrice.most_recent_price_response.price_posting.time;
+
+    const timesToPost = calculateIntervals(lastTime)
+
+    return timesToPost;
+}
+
 
 function convertClaimToProof(claim: {
     identifier: string;
