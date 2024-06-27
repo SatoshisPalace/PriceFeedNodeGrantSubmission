@@ -9,7 +9,7 @@ import { calculateIntervals, getLastFiveMinuteInterval } from "../time";
 
 export async function postPrice(claim: Claim) {
     let secretJs = getSecretNetworkClient();
-    const priceFeed = new PriceFeed(PRICE_FEED_CONTRACT_INFO, secretJs)
+    const priceFeed = new PriceFeed(priceFeedInfo, secretJs)
 
     let proof = convertClaimToProof(claim);
     let postPriceResponse = await priceFeed.post_price(proof)
