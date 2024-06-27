@@ -5,12 +5,11 @@ import { contractInfo as priceFeedInfo } from 'spjs/dist/deployment/artifacts/pr
 import { ProviderClaimData } from "@reclaimprotocol/witness-sdk/lib/proto/api";
 import { WitnessData } from "@reclaimprotocol/witness-sdk";
 import { Claim, logger } from 'satoshis-palace-reclaim-base'
-import { calculateIntervals } from "../time";
-
+import { calculateIntervals, getLastFiveMinuteInterval } from "../time";
 
 export async function postPrice(claim: Claim) {
     let secretJs = getSecretNetworkClient();
-    const priceFeed = new PriceFeed(priceFeedInfo, secretJs)
+    const priceFeed = new PriceFeed(PRICE_FEED_CONTRACT_INFO, secretJs)
 
     let proof = convertClaimToProof(claim);
     let postPriceResponse = await priceFeed.post_price(proof)
@@ -25,17 +24,22 @@ export async function postPrice(claim: Claim) {
     logger.info('Price Posted Successfully for claim with id:', claim.identifier)
 }
 
-export async function getTimesToPost() {
+export async function getTimesToPost(): Promise<number[]> {
     const secretJs = getSecretNetworkClient();
     const priceFeed = new PriceFeed(priceFeedInfo, secretJs);
-    const mostRecentPrice = await priceFeed.get_most_recent_price();
-    const lastTime = mostRecentPrice.most_recent_price_response.price_posting.time;
 
-    const timesToPost = calculateIntervals(lastTime)
-
-    return timesToPost;
+    try {
+        const mostRecentPrice = await priceFeed.get_most_recent_price();
+        const lastTime = mostRecentPrice.most_recent_price_response.price_posting.time;
+        const timesToPost = calculateIntervals(lastTime);
+        return timesToPost;
+    } catch { // First Run, no prices available
+        const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+        const lastInterval = getLastFiveMinuteInterval(currentTime);
+        const timesToPost = calculateIntervals(lastInterval);
+        return timesToPost;
+    }
 }
-
 
 function convertClaimToProof(claim: {
     identifier: string;

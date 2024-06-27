@@ -43,3 +43,12 @@ export function calculateIntervals(startTime: number): number[] {
 
     return intervals;
 }
+
+/**
+ * Gets the last 5-minute interval before the given time.
+ * @param currentTime The current Unix timestamp in seconds.
+ * @returns The Unix timestamp in seconds of the last 5-minute interval.
+ */
+export function getLastFiveMinuteInterval(currentTime: number): number {
+    return currentTime - 2 * (currentTime % (INTERVAL_MINUTES * SECONDS_PER_MINUTE));
+}
