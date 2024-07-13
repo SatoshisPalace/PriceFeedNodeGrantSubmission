@@ -6,10 +6,11 @@ import { ProviderClaimData } from "@reclaimprotocol/witness-sdk/lib/proto/api";
 import { WitnessData } from "@reclaimprotocol/witness-sdk";
 import { Claim, logger } from 'satoshis-palace-reclaim-base'
 import { calculateIntervals, getLastFiveMinuteInterval } from "../time";
+import { PRICE_FEED_CONTRACT_INFO } from "../constants";
 
 export async function postPrice(claim: Claim) {
     let secretJs = getSecretNetworkClient();
-    const priceFeed = new PriceFeed(priceFeedInfo, secretJs)
+    const priceFeed = new PriceFeed(PRICE_FEED_CONTRACT_INFO, secretJs)
 
     let proof = convertClaimToProof(claim);
     let postPriceResponse = await priceFeed.post_price(proof)
@@ -26,7 +27,7 @@ export async function postPrice(claim: Claim) {
 
 export async function getTimesToPost(): Promise<number[]> {
     const secretJs = getSecretNetworkClient();
-    const priceFeed = new PriceFeed(priceFeedInfo, secretJs);
+    const priceFeed = new PriceFeed(PRICE_FEED_CONTRACT_INFO, secretJs);
 
     try {
         const mostRecentPrice = await priceFeed.get_most_recent_price();
