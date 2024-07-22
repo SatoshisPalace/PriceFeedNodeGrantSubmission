@@ -4,8 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "clean": "rimraf dist node_modules",
     "build": "tsc",
-    "start": "ts-node src/index.ts"
+    "start": "node dist/index.js",
+    "clean-build": "npm run clean && npm run build",
+    "build-start": "npm run build && npm run start",
+    "clean-install-build-start": "npm run clean && npm install && npm run build-start"
   },
   "repository": {
     "type": "git",
@@ -19,15 +23,20 @@
   },
   "homepage": "https://github.com/SatoshisPalace/price-feed#readme",
   "devDependencies": {
+    "@types/ws": "8.5.11",
     "@typescript-eslint/eslint-plugin": "7.7.0",
     "@typescript-eslint/parser": "7.7.0",
     "eslint": "8.57.0",
     "ts-node": "10.9.2",
-    "typescript": "5.4.5"
+    "typescript": "5.4.5",
+    "rimraf": "5.0.0"
   },
   "dependencies": {
+    "@types/glob": "8.1.0",
+    "@types/minimatch": "3.0.5",
     "dotenv": "16.4.5",
-    "zk-fetch": "git+ssh://git@github.com:SatoshisPalace/zk-fetch.git#response-matches-with-dist",
-    "spjs": "github:SatoshisPalace/SP.js"
+    "minimatch": "3.0.4",
+    "spjs": "github:SatoshisPalace/SP.js",
+    "zk-fetch": "git+ssh://git@github.com:SatoshisPalace/zk-fetch.git#response-matches-with-dist"
   }
 }

@@ -1,3 +1,8 @@
+
+// SP.js / SHADE.js / SECRET.js // Reclaim-Witness-SDK all fight for window polyfills and it breaks reclaims fetch usage setting window to undefined resets all that
+// @ts-ignore
+window = undefined
+
 import { ReclaimClient } from "zk-fetch" 
 import { ClaimTunnelResponse }  from '@reclaimprotocol/witness-sdk/lib/proto/api';
 
@@ -5,9 +10,7 @@ import { HistoricalDataHandler } from "../api/coinmarketcap/HistoricalDataHandle
 import { MAX_RETRIES, TIME_OUT } from "../constants";
 import { Options, ResponseMatches, secretOptions } from "./reclaim-types";
 import { logger } from '../logger';
-// SP.js / SHADE.js / SECRET.js all fight for window polyfills and it breaks reclaims fetch usage setting window to undefined resets all that
-// @ts-ignore
-window = undefined
+
 
 class PriceReclaim {
     method: 'GET' | 'POST' = 'GET';
@@ -24,12 +27,15 @@ class PriceReclaim {
     }
 
     private getReclaimClient(): ReclaimClient {
-        logger.info(process.env.RECLAIM_CLIENT_ADDRESS)
-        logger.info(process.env.RECLAIM_CLIENT_SECRET)
         return new ReclaimClient(
             process.env.RECLAIM_CLIENT_ADDRESS as string,
             process.env.RECLAIM_CLIENT_SECRET as string
         );
+    }
+
+    private setTime(unixTimeStamp: string) {
+        this.timeStamp = unixTimeStamp;
+        this.apiHandler.setEndTime(unixTimeStamp)
     }
 
     protected getUrl(): string {
@@ -90,16 +96,18 @@ class PriceReclaim {
         return secretParams
     }
 
-    public async createPriceClaim(time: string): Promise<ClaimTunnelResponse  | undefined> {
-        this.timeStamp = time
+    public async createPriceClaim(unixTimeStamp: string): Promise<ClaimTunnelResponse  | undefined> {
+        this.setTime(unixTimeStamp)
+        const responseMatches = await this.getResponseMatches()//Sets url so must be run first
+        const url = this.getUrl()
         const client = this.getReclaimClient()
         return (await client.zkFetch(
-            this.getUrl(),
+            url,
             this.getPublicOptions(),
             this.getSecretOptions(),
             1,
             1,
-            await this.getResponseMatches()
+            responseMatches
           ))
     }
 }

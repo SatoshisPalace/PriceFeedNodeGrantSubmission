@@ -2,7 +2,7 @@
 import 'spjs/dist/polyfills'
 
 import { getTimesToPost, postPrice, getPriceClaim } from './integrations';
-import { convertUnixToISO, calculateNextRunDelay } from './time';
+import { convertUnixToISO, calculateNextRunDelay } from './utilities/time';
 import { logger } from './logger';
 
 

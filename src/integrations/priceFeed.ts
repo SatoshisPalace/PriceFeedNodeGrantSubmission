@@ -1,14 +1,14 @@
 import { getSecretNetworkClient } from "spjs/dist";
 import { TxResultCode } from 'secretjs';
 import { PriceFeed, Proof } from "spjs/dist/modules/price-feed";
-import { contractInfo as priceFeedInfo } from 'spjs/dist/deployment/artifacts/price-feed-info'
-import { calculateIntervals, getLastFiveMinuteInterval } from "../time";
+import { calculateIntervals, getLastFiveMinuteInterval } from "../utilities/time";
 import { logger } from "../logger";
-import { ProviderClaimData, ClaimTunnelResponse }  from '@reclaimprotocol/witness-sdk/lib/proto/api';
+import {  ClaimTunnelResponse }  from '@reclaimprotocol/witness-sdk/lib/proto/api';
 
 import * as _reclaimprotocol_witness_sdk from '@reclaimprotocol/witness-sdk/lib/types';
 import * as _reclaimprotocol_witness_sdk_lib_proto_api from '@reclaimprotocol/witness-sdk/lib/proto/api';
 import { PRICE_FEED_CONTRACT_INFO } from "../constants";
+import { uint8ArrayToHexString } from "../utilities/crypto";
 
 export async function postPrice(reclaimResponse: ClaimTunnelResponse) {
     let secretJs = getSecretNetworkClient();
@@ -58,7 +58,7 @@ function convertClaimToProof(reclaimResponse: ClaimTunnelResponse): Proof {
                 owner: reclaimResponse.claim!.owner,
                 timestampS: reclaimResponse.claim!.timestampS
             },
-            signatures: [reclaimResponse.signatures!.claimSignature.toString()]
+            signatures: [uint8ArrayToHexString(reclaimResponse.signatures!.claimSignature)]
         }
     }
     return proof

@@ -1,4 +1,4 @@
-import { ADDITIONAL_SECONDS, INTERVAL_MINUTES, MILLISECONDS_PER_SECOND, SECONDS_PER_MINUTE } from "./constants";
+import { ADDITIONAL_SECONDS, INTERVAL_MINUTES, MILLISECONDS_PER_SECOND, SECONDS_PER_MINUTE } from "../constants";
 
 /**
  * Converts a Unix timestamp to an ISO 8601 formatted string.
