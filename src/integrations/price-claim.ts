@@ -1,14 +1,15 @@
-import { Claim, ReclaimHTTPProvider, ResponseMatches, ResponseRedactions } from "satoshis-palace-reclaim-base";
-import { ProviderSecretParams } from "@reclaimprotocol/witness-sdk";
-import { HeaderMap, HTTPProviderParamsV2 } from "@reclaimprotocol/witness-sdk/lib/providers/http-provider";
+import { ReclaimClient } from "zk-fetch" 
+import { ClaimTunnelResponse }  from '@reclaimprotocol/witness-sdk/lib/proto/api';
+
 import { HistoricalDataHandler } from "../api/coinmarketcap/HistoricalDataHandler";
 import { MAX_RETRIES, TIME_OUT } from "../constants";
-import { logger } from 'satoshis-palace-reclaim-base'
+import { Options, ResponseMatches, secretOptions } from "./reclaim-types";
+import { logger } from '../logger';
 // SP.js / SHADE.js / SECRET.js all fight for window polyfills and it breaks reclaims fetch usage setting window to undefined resets all that
 // @ts-ignore
 window = undefined
 
-class PriceReclaim extends ReclaimHTTPProvider {
+class PriceReclaim {
     method: 'GET' | 'POST' = 'GET';
     private private_key: string;
     private apiHandler: HistoricalDataHandler;
@@ -16,11 +17,19 @@ class PriceReclaim extends ReclaimHTTPProvider {
     private coinId: string;
 
     constructor(private_key: string, coinId: string, currency: string) {
-        super();
         this.private_key = private_key
         this.coinId = coinId
 
         this.apiHandler = new HistoricalDataHandler(coinId, currency)
+    }
+
+    private getReclaimClient(): ReclaimClient {
+        logger.info(process.env.RECLAIM_CLIENT_ADDRESS)
+        logger.info(process.env.RECLAIM_CLIENT_SECRET)
+        return new ReclaimClient(
+            process.env.RECLAIM_CLIENT_ADDRESS as string,
+            process.env.RECLAIM_CLIENT_SECRET as string
+        );
     }
 
     protected getUrl(): string {
@@ -31,40 +40,23 @@ class PriceReclaim extends ReclaimHTTPProvider {
         return this.private_key;
     }
 
-    protected getHeaders(): HeaderMap | undefined {
+    protected getHeaders(): {
+        [key: string]: string;
+    } | undefined {
         const headers = this.apiHandler.getHeaders();  // Assuming this returns a Fetch API Headers object
 
         if (!headers) {
             return undefined;
         }
 
-        let headerMap: HeaderMap = {};
+        let headerMap:{
+            [key: string]: string;
+        } = {};
         headers.forEach((value, key) => {
             headerMap[key] = value;
         });
 
         return headerMap;
-    }
-
-    protected async getClaimParams(): Promise<HTTPProviderParamsV2> {
-        const responseMatches = await this.getResponseMatches()
-        const params: HTTPProviderParamsV2 = {
-            url: this.getUrl(),
-            method: this.method,
-            responseRedactions: this.getResponseRedactions(),
-            responseMatches,
-            // headers: this.getHeaders()
-        };
-        return params;
-    }
-
-    protected getSercretParams(): ProviderSecretParams<typeof this.name> {
-
-        const secretParams: ProviderSecretParams<typeof this.name> = {
-            // authorisationHeader: this.apiHandler.getAuthHeader()
-            headers: this.getHeaders()
-        }
-        return secretParams
     }
 
     private async getValueThatResponseIsExpectedToContain(): Promise<string> {
@@ -84,23 +76,50 @@ class PriceReclaim extends ReclaimHTTPProvider {
         return responseMatches
     }
 
-    public createPriceClaim(time: string): Promise<Claim> {
+    protected getPublicOptions(): Options | undefined {
+        const publicOptions: Options = {
+            method: this.method
+        }
+        return publicOptions
+    }
+
+    protected getSecretOptions(): secretOptions | undefined {
+        const secretParams: secretOptions = {
+            headers: this.getHeaders()
+        }
+        return secretParams
+    }
+
+    public async createPriceClaim(time: string): Promise<ClaimTunnelResponse  | undefined> {
         this.timeStamp = time
-        return this.createClaim()
+        const client = this.getReclaimClient()
+        return (await client.zkFetch(
+            this.getUrl(),
+            this.getPublicOptions(),
+            this.getSecretOptions(),
+            1,
+            1,
+            await this.getResponseMatches()
+          ))
     }
 }
 
-export async function getPriceClaim(timeStamp: string): Promise<Claim> {
+export async function getPriceClaim(timeStamp: string): Promise<ClaimTunnelResponse > {
     let attempts = 0;
     let reclaimProvider = new PriceReclaim(process.env.PRIVATE_KEY!, process.env.COIN_ID!, process.env.DENOMINATED_COIN_ID!);
 
     while (attempts < MAX_RETRIES) {
         try {
             const claim = await reclaimProvider.createPriceClaim(timeStamp);
-            logger.info(`Price claim created successfully\n
-                        timestamp of price:${timeStamp}\n
-                        identifier:${claim.identifier}`)
-            return claim; // Successfully created claim, return it
+            if (claim){
+                logger.info(`Price claim created successfully\n
+                timestamp of price:${timeStamp}\n
+                identifier:${claim.claim?.identifier}`)
+                return claim; // Successfully created claim, return it
+            } else{
+                throw new Error("Could not create claim")
+            }
+
         } catch (error) {
             logger.error(`Failed to create price claim on attempt ${attempts + 1}:`, error)
             attempts++;

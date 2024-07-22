@@ -1,5 +1,5 @@
+import { logger } from "../../logger";
 import { CoinMarketCapAPIHandler } from "./CoinMarketCapAPIHandler";
-import { logger } from 'satoshis-palace-reclaim-base'
 export class HistoricalDataHandler extends CoinMarketCapAPIHandler {
     constructor(coinId: string, currency: string) {
         super();

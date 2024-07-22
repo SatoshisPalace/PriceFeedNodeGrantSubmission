@@ -3,7 +3,7 @@ import 'spjs/dist/polyfills'
 
 import { getTimesToPost, postPrice, getPriceClaim } from './integrations';
 import { convertUnixToISO, calculateNextRunDelay } from './time';
-import { logger } from 'satoshis-palace-reclaim-base'
+import { logger } from './logger';
 
 
 

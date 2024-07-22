@@ -2,16 +2,18 @@ import { getSecretNetworkClient } from "spjs/dist";
 import { TxResultCode } from 'secretjs';
 import { PriceFeed, Proof } from "spjs/dist/modules/price-feed";
 import { contractInfo as priceFeedInfo } from 'spjs/dist/deployment/artifacts/price-feed-info'
-import { ProviderClaimData } from "@reclaimprotocol/witness-sdk/lib/proto/api";
-import { WitnessData } from "@reclaimprotocol/witness-sdk";
-import { Claim, logger } from 'satoshis-palace-reclaim-base'
 import { calculateIntervals, getLastFiveMinuteInterval } from "../time";
+import { logger } from "../logger";
+import { ProviderClaimData, ClaimTunnelResponse }  from '@reclaimprotocol/witness-sdk/lib/proto/api';
 
-export async function postPrice(claim: Claim) {
+import * as _reclaimprotocol_witness_sdk from '@reclaimprotocol/witness-sdk/lib/types';
+import * as _reclaimprotocol_witness_sdk_lib_proto_api from '@reclaimprotocol/witness-sdk/lib/proto/api';
+
+export async function postPrice(reclaimResponse: ClaimTunnelResponse) {
     let secretJs = getSecretNetworkClient();
     const priceFeed = new PriceFeed(priceFeedInfo, secretJs)
 
-    let proof = convertClaimToProof(claim);
+    let proof = convertClaimToProof(reclaimResponse);
     let postPriceResponse = await priceFeed.post_price(proof)
     if (postPriceResponse.code != TxResultCode.Success) {
         throw new Error(`Failed To post proof of price:\n
@@ -21,7 +23,7 @@ export async function postPrice(claim: Claim) {
             `
         );
     }
-    logger.info('Price Posted Successfully for claim with id:', claim.identifier)
+    logger.info('Price Posted Successfully for claim with id:', reclaimResponse.claim?.identifier)
 }
 
 export async function getTimesToPost(): Promise<number[]> {
@@ -41,26 +43,21 @@ export async function getTimesToPost(): Promise<number[]> {
     }
 }
 
-function convertClaimToProof(claim: {
-    identifier: string;
-    claimData: ProviderClaimData;
-    signatures: string[];
-    witnesses: WitnessData[];
-}): Proof {
+function convertClaimToProof(reclaimResponse: ClaimTunnelResponse): Proof {
     let proof: Proof = {
         claimInfo: {
-            context: claim.claimData.context,
-            parameters: claim.claimData.parameters,
-            provider: claim.claimData.provider
+            context: reclaimResponse.claim!.context,
+            parameters: reclaimResponse.claim!.parameters,
+            provider: reclaimResponse.claim!.provider
         },
         signedClaim: {
             claim: {
-                epoch: claim.claimData.epoch,
-                identifier: claim.identifier,
-                owner: claim.claimData.owner,
-                timestampS: claim.claimData.timestampS
+                epoch: reclaimResponse.claim!.epoch,
+                identifier: reclaimResponse.claim!.identifier,
+                owner: reclaimResponse.claim!.owner,
+                timestampS: reclaimResponse.claim!.timestampS
             },
-            signatures: claim.signatures
+            signatures: [reclaimResponse.signatures!.claimSignature.toString()]
         }
     }
     return proof
