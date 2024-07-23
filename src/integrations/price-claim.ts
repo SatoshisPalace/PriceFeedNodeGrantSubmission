@@ -3,8 +3,8 @@
 // @ts-ignore
 window = undefined
 
-import { ReclaimClient } from "zk-fetch" 
-import { ClaimTunnelResponse }  from '@reclaimprotocol/witness-sdk/lib/proto/api';
+import { ReclaimClient } from "zk-fetch"
+import { ClaimTunnelResponse } from '@reclaimprotocol/witness-sdk/lib/proto/api';
 
 import { HistoricalDataHandler } from "../api/coinmarketcap/HistoricalDataHandler";
 import { MAX_RETRIES, TIME_OUT } from "../constants";
@@ -14,13 +14,11 @@ import { logger } from '../logger';
 
 class PriceReclaim {
     method: 'GET' | 'POST' = 'GET';
-    private private_key: string;
     private apiHandler: HistoricalDataHandler;
     private timeStamp!: string;
     private coinId: string;
 
-    constructor(private_key: string, coinId: string, currency: string) {
-        this.private_key = private_key
+    constructor(coinId: string, currency: string) {
         this.coinId = coinId
 
         this.apiHandler = new HistoricalDataHandler(coinId, currency)
@@ -42,10 +40,6 @@ class PriceReclaim {
         return this.apiHandler.getUrl();
     }
 
-    protected getOwnerPrivateKey(): string {
-        return this.private_key;
-    }
-
     protected getHeaders(): {
         [key: string]: string;
     } | undefined {
@@ -55,7 +49,7 @@ class PriceReclaim {
             return undefined;
         }
 
-        let headerMap:{
+        let headerMap: {
             [key: string]: string;
         } = {};
         headers.forEach((value, key) => {
@@ -96,7 +90,7 @@ class PriceReclaim {
         return secretParams
     }
 
-    public async createPriceClaim(unixTimeStamp: string): Promise<ClaimTunnelResponse  | undefined> {
+    public async createPriceClaim(unixTimeStamp: string): Promise<ClaimTunnelResponse | undefined> {
         this.setTime(unixTimeStamp)
         const responseMatches = await this.getResponseMatches()//Sets url so must be run first
         const url = this.getUrl()
@@ -108,23 +102,23 @@ class PriceReclaim {
             1,
             1,
             responseMatches
-          ))
+        ))
     }
 }
 
-export async function getPriceClaim(timeStamp: string): Promise<ClaimTunnelResponse > {
+export async function getPriceClaim(timeStamp: string): Promise<ClaimTunnelResponse> {
     let attempts = 0;
-    let reclaimProvider = new PriceReclaim(process.env.PRIVATE_KEY!, process.env.COIN_ID!, process.env.DENOMINATED_COIN_ID!);
+    let reclaimProvider = new PriceReclaim(process.env.COIN_ID!, process.env.DENOMINATED_COIN_ID!);
 
     while (attempts < MAX_RETRIES) {
         try {
             const claim = await reclaimProvider.createPriceClaim(timeStamp);
-            if (claim){
+            if (claim) {
                 logger.info(`Price claim created successfully\n
                 timestamp of price:${timeStamp}\n
                 identifier:${claim.claim?.identifier}`)
                 return claim; // Successfully created claim, return it
-            } else{
+            } else {
                 throw new Error("Could not create claim")
             }
 

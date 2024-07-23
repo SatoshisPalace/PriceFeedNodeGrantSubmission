@@ -18,9 +18,8 @@ const HistoricalDataHandler_1 = require("../api/coinmarketcap/HistoricalDataHand
 const constants_1 = require("../constants");
 const logger_1 = require("../logger");
 class PriceReclaim {
-    constructor(private_key, coinId, currency) {
+    constructor(coinId, currency) {
         this.method = 'GET';
-        this.private_key = private_key;
         this.coinId = coinId;
         this.apiHandler = new HistoricalDataHandler_1.HistoricalDataHandler(coinId, currency);
     }
@@ -33,9 +32,6 @@ class PriceReclaim {
     }
     getUrl() {
         return this.apiHandler.getUrl();
-    }
-    getOwnerPrivateKey() {
-        return this.private_key;
     }
     getHeaders() {
         const headers = this.apiHandler.getHeaders(); // Assuming this returns a Fetch API Headers object
@@ -93,7 +89,7 @@ function getPriceClaim(timeStamp) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         let attempts = 0;
-        let reclaimProvider = new PriceReclaim(process.env.PRIVATE_KEY, process.env.COIN_ID, process.env.DENOMINATED_COIN_ID);
+        let reclaimProvider = new PriceReclaim(process.env.COIN_ID, process.env.DENOMINATED_COIN_ID);
         while (attempts < constants_1.MAX_RETRIES) {
             try {
                 const claim = yield reclaimProvider.createPriceClaim(timeStamp);
