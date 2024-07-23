@@ -1,4 +1,3 @@
-
 export const RED = '\x1b[31m'; // ANSI escape code for red
 export const RESET = '\x1b[0m'; // ANSI escape code to reset color
 export const GREEN = '\x1b[32m'

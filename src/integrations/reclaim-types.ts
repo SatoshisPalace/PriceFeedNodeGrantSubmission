@@ -13,14 +13,8 @@ export interface secretOptions {
         [key: string]: string;
     };
 }
-export interface ResponseMatches{
+export interface ResponseMatches {
     value: string;
     type: "regex" | "contains";
     invert?: boolean;
 }
-export interface Claim{
-    identifier: string;
-    claimData: _reclaimprotocol_witness_sdk_lib_proto_api.ProviderClaimData;
-    signatures: string[];
-    witnesses: _reclaimprotocol_witness_sdk.WitnessData[];
-};

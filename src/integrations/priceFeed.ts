@@ -3,7 +3,7 @@ import { TxResultCode } from 'secretjs';
 import { PriceFeed, Proof } from "spjs/dist/modules/price-feed";
 import { calculateIntervals, getLastFiveMinuteInterval } from "../utilities/time";
 import { logger } from "../logger";
-import {  ClaimTunnelResponse }  from '@reclaimprotocol/witness-sdk/lib/proto/api';
+import { ClaimTunnelResponse } from '@reclaimprotocol/witness-sdk/lib/proto/api';
 
 import * as _reclaimprotocol_witness_sdk from '@reclaimprotocol/witness-sdk/lib/types';
 import * as _reclaimprotocol_witness_sdk_lib_proto_api from '@reclaimprotocol/witness-sdk/lib/proto/api';
